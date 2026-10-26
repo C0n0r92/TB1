@@ -1,0 +1,10 @@
+[
+ {
+  "label": "Ew4ue-flip",
+  "wallet": "Ew4ueQQwA4p5sDf6PqwME54Th4trkQZqJZ2bsEzWqY2y",
+  "confidence": "low",
+  "source": "scout qf true+5s (public RPC + GeckoTerminal); no copyfomo mapping",
+  "min_mcap_usd": 32303,
+  "min_liq_usd": 16679
+ }
+]

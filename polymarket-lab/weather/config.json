@@ -1,0 +1,35 @@
+{
+ "stake_usd": 5.0,
+ "margins": [
+  0.03,
+  0.05,
+  0.08,
+  0.12,
+  0.15
+ ],
+ "primary_margin": 0.08,
+ "min_ask": 0.02,
+ "max_ask": 0.95,
+ "max_lead_h": 48,
+ "fee_modes": [
+  "market",
+  "conservative"
+ ],
+ "conservative_fee_rate": 0.05,
+ "model": {
+  "sigma0_c": 0.6,
+  "sigma_per_24h_c": 0.6,
+  "bias_high_c": 0.3,
+  "bias_low_c": -0.3,
+  "draws_per_member": 25,
+  "p_clip": 0.002
+ },
+ "ensemble_models": [
+  "ecmwf_ifs025",
+  "gfs025"
+ ],
+ "forecast_cache_s": 10800,
+ "holdout_frac": 0.4,
+ "min_lead_h": 1.0,
+ "model_version": "v2-ens+stationcalib-sd"
+}

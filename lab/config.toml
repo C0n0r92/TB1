@@ -1,0 +1,342 @@
+# Lab paper-trading / backtest config. PAPER ONLY. Every number here is an ASSUMPTION; change it and rerun.
+# Run: /workspace/lab/run_pipeline.sh   (fetch -> backtest -> leaderboard -> daily report)
+
+[paths]
+radar_scanned   = "/workspace/runner-radar/scanned.jsonl"     # every coin the radar evaluated (read-only)
+radar_signals   = "/workspace/runner-radar/signals.jsonl"
+radar_candles   = "/workspace/runner-radar/candles_cache"     # seed cache (read-only, copied into data/candles)
+radar_snapshots = "/workspace/runner-radar/intel_snapshots"   # radar's point-in-time intel copies (read-only)
+chunk_trades_md = "/workspace/runner-radar/live/trades-log.md"
+copyfomo_dir    = "/workspace/copyfomo"                       # skips-log.csv + any trades*.csv / *.jsonl
+x_intel         = "/workspace/x-intel"
+x_pulse         = "/workspace/x-pulse"
+onchain         = "/workspace/onchain-intel"
+chunk_paper     = "/workspace/runner-radar/live/paper-buys.jsonl"   # Chunk's would-be buys while live buys are paused
+scout_script    = "/workspace/onchain-intel/rugcheck_creator.py"
+
+[costs]
+bet_usd            = 10.0    # fixed paper size per trade (Copycat ~$94 x 15% cap ~ $14; Chunk 0.93 SOL x 15%)
+start_equity_usd   = 100.0   # for drawdown %; P&L is in $ on fixed size (no compounding)
+fee_per_side       = 0.02    # 2% per buy and per sell (Zero's spec; Banana Gun/FOMO fee ~1% + DEX/LP fee ~0.25-1%)
+fixed_cost_usd     = 0.05    # per transaction: priority fee / Jito tip / ATA rent (~0.0003 SOL)
+base_slippage      = 0.005   # 0.5% per side even in deep pools (MEV, quote staleness, bot latency)
+impact_mult        = 2.0     # price impact = impact_mult * size / pool_liquidity_usd (constant-product, quote side = liq/2)
+liq_floor_usd      = 500.0   # never assume less pool depth than this when computing impact
+max_slippage       = 0.50    # cap per side
+liq_model          = "sqrt"  # pool liquidity between polls ~ liq_at_signal * sqrt(price/price_at_signal) (x*y=k, no LP add/remove)
+rug_drawdown       = 0.80    # a trade is a RUG if price fell >= 80% from entry during the hold (or liq poll dropped >= 80%)
+rug_max_recovery   = 0.10    # on a rug exit you recover at most 10% of the stake (near-total loss)
+
+[sim]
+candle_s           = 300     # GeckoTerminal 5-minute candles
+horizon_h          = 24      # never hold past 24 h
+dublin_close       = true    # everything flat by 08:00 Europe/Dublin (team rule)
+max_open           = 3       # max concurrent open positions per variant
+same_candle        = "stop_first"   # if a candle touches stop and target, assume stop first (conservative)
+holdout_fraction   = 0.4     # latest 40% of candidate time = out-of-sample; tune only on the in-sample part
+holdout_start      = ""      # optional fixed ISO time; overrides holdout_fraction once set (recommended after ~3 nights)
+min_oos_trades     = 20      # fewer out-of-sample trades than this => "insufficient"
+bootstrap_iters    = 5000
+mc_iters           = 1000    # Monte-Carlo reshuffles of trade order for the drawdown range
+seed               = 7
+
+[fetch]
+gecko_spacing_s    = 6.5     # <= ~9 req/min (radar shares the ~30/min budget)
+dex_spacing_s      = 6.5
+rugcheck_spacing_s = 2.0
+max_gecko_calls    = 25      # per pipeline run
+max_rugcheck_calls = 10      # per run; only coins scanned <= 15 min ago (point-in-time LP/holder snapshot)
+max_scout_calls    = 3       # per run; Scout's rugcheck_creator.py (2-10 s each, uses Scout's own 10-min cache)
+scout_spacing_s    = 3
+refresh_min        = 30      # refetch an unfinished candle window at most every 30 min
+min_score_fetch    = 40      # fetch candles for every non-rejected scan row with score >= this
+
+# ---------------- variants ----------------
+# Every key is optional; defaults below apply. Units: ages in hours, delays in minutes, returns as fractions.
+[defaults]
+source          = "radar"    # radar | chunk_live | copyfomo_skips | copyfomo_trades
+min_score       = 55
+allow_rejects   = false
+min_age_h       = 0.0        # pair age at ENTRY
+max_age_h       = 99
+min_liq         = 0
+min_liq_mcap    = 0
+max_mcap        = 1e12
+max_top10       = 100
+min_lp_locked   = -1         # needs Lab's own rugcheck capture <= 15 min after signal; -1 = off
+entry_delay_min = 0          # wait N minutes after the signal, enter at next candle open
+survive_max_dd  = -1.0       # skip if price at entry is below signal*(1+x)   (e.g. -0.3)
+survive_max_up  = 99         # skip if price at entry is above signal*(1+x)   (chase cap, e.g. 0.15)
+survive_min_liq_ratio = 0    # skip if estimated/polled liq at entry < x * liq at signal
+stop            = -0.25      # fixed stop from entry
+trail           = 0          # >0 = trailing stop x below the high-water mark (replaces fixed stop once tighter)
+trail_activate  = 0          # trailing starts only after price is +x above entry
+tp_mult         = 2.0        # take-profit multiple of entry (0 = none)
+tp_frac         = 0.5        # fraction sold at tp
+max_hold_h      = 24
+pulse           = "off"      # off | filter (skip fading/rugs, +boost if rising) | require_rising
+pulse_boost     = 5
+scout           = "off"      # off | filter (skip avoid token/creator/holder, +boost per smart wallet)
+scout_boost     = 5
+scout_boost_max = 10
+# --- guarded radar (rugguard, deployed 2026-10-23 ~21:13Z) ---
+guard           = "off"      # off = radar rows as logged | live = only rows scanned with rugguard live | replay = all rows,
+                             # rugguard recomputed for pre-guard rows (holder data may be AFTER the scan) | replay_pit = only point-in-time replays
+guard_ignore    = []         # guard categories to switch off: holders wash m5 liqdrop lp_danger launch_fullcurve launch_rugger launch_funded
+guard_min_age_h = 0.75       # rugguard age gate (45 min). Young rows rescanned later -> later row decides; never-rescanned -> wait in place
+scout_creator   = "off"      # off | skip_block | skip_caution | half_caution   (Scout rugcheck_creator verdict, point-in-time only)
+scout_lookahead = false   # true = OPTIMISTIC: also use Scout verdicts captured after the signal
+# --- sizing ---
+size_mult       = 1.0
+stake_pct       = 0          # >0: stake = pct of equity (5-10% per Zero; hard cap 15%)
+max_ticket_pct  = 0          # >0: skip if ticket > x of pool liquidity at entry (e.g. 0.01)
+# --- exits ---
+ladder          = []         # [[mult, fraction_of_original], ...] e.g. [[2.0,0.5],[3.0,0.25]]
+trail_after_tp  = 0          # trail the remainder x below the peak once the first rung is hit
+liq_exit_drop   = 0          # exit at the candle close if pool liquidity is down >= x from entry liquidity
+time_stop_h     = 0          # exit if not reached +time_stop_gain within this many hours
+time_stop_gain  = 0.2
+reentry         = {}         # {pullback_min=0.3, pullback_max=0.5} buy back once after a take-profit
+note            = ""
+
+[[variant]]
+name = "A_live_rule"            # = radar signals: score>=55, no rejects, enter at scan price
+[[variant]]
+name = "B_strict65"
+min_score = 65
+[[variant]]
+name = "C_loose50"
+min_score = 50
+[[variant]]
+name = "D_pulse_filter"
+pulse = "filter"
+[[variant]]
+name = "E_scout_filter"
+scout = "filter"
+[[variant]]
+name = "F_chunk_survival20"     # Chunk's live checks: wait 20 min, price within -30%..+15% of signal, pair >=45 min old
+entry_delay_min = 20
+survive_max_dd = -0.30
+survive_max_up = 0.15
+survive_min_liq_ratio = 0.7
+min_age_h = 0.75
+[[variant]]
+name = "G_survival60"           # wait 1 h; only coins still within -30%..+50%
+entry_delay_min = 60
+survive_max_dd = -0.30
+survive_max_up = 0.50
+survive_min_liq_ratio = 0.7
+[[variant]]
+name = "H_minage2h"
+min_age_h = 2.0
+min_score = 45
+[[variant]]
+name = "I_liq50k"
+min_liq = 50000
+min_liq_mcap = 0.10
+[[variant]]
+name = "J_trail30"
+trail = 0.30
+stop = -0.25
+tp_mult = 0
+[[variant]]
+name = "K_time60m"
+max_hold_h = 1.0
+[[variant]]
+name = "L_tight_tp1.5"
+stop = -0.15
+tp_mult = 1.5
+tp_frac = 1.0
+[[variant]]
+name = "M_lp_locked90"
+min_lp_locked = 90
+[[variant]]
+name = "N_survival20_scout_pulse"
+entry_delay_min = 20
+survive_max_dd = -0.30
+survive_max_up = 0.15
+survive_min_liq_ratio = 0.7
+pulse = "filter"
+scout = "filter"
+[[variant]]
+name = "CHUNK_actual"           # Chunk's real buys parsed from live/trades-log.md, replayed with these costs
+source = "chunk_live"
+min_score = 0
+[[variant]]
+name = "COPY_skips_taken"       # counterfactual: what copyfomo's skipped copies would have done
+source = "copyfomo_skips"
+min_score = 0
+[[variant]]
+name = "COPY_actual"
+source = "copyfomo_trades"
+min_score = 0
+
+# ======================= guarded radar forward test (Zero 2026-10-23) =======================
+[[variant]]
+name = "GUARD_live"              # forward test: rows scanned with rugguard live, as the radar would signal them now
+guard = "live"
+[[variant]]
+name = "GUARD_replay"            # all rows, rugguard recomputed for pre-guard rows (OPTIMISTIC: some holder data after the scan)
+guard = "replay"
+survive_max_dd = -0.5            # while waiting for the 45-min age gate: skip if price -50% (guard 'crashing') ...
+survive_min_liq_ratio = 0.7      # ... or liquidity -30% (guard 'liquidity fell')
+[[variant]]
+name = "GUARD_replay_pit"        # only rows whose holder snapshot was captured <= 15 min after the scan
+guard = "replay_pit"
+survive_max_dd = -0.5
+survive_min_liq_ratio = 0.7
+[[variant]]
+name = "GUARD_no_funded_rule"    # (a) drop 'creator funded by known rugger/funder'
+guard = "replay"
+guard_ignore = ["launch_funded"]
+survive_max_dd = -0.5
+survive_min_liq_ratio = 0.7
+[[variant]]
+name = "GUARD_no_launch_rules"
+guard = "replay"
+guard_ignore = ["launch_funded", "launch_rugger", "launch_fullcurve"]
+survive_max_dd = -0.5
+survive_min_liq_ratio = 0.7
+[[variant]]
+name = "GUARD_holders_wash_only" # the only guard family that cost no survivors in rugdiag
+guard = "replay"
+guard_ignore = ["m5", "liqdrop", "lp_danger", "launch_fullcurve", "launch_rugger", "launch_funded"]
+guard_min_age_h = 0
+[[variant]]
+name = "GUARD_caution_skip"
+guard = "replay"
+scout_creator = "skip_caution"
+survive_max_dd = -0.5
+survive_min_liq_ratio = 0.7
+[[variant]]
+name = "GUARD_caution_half"
+guard = "replay"
+scout_creator = "half_caution"
+survive_max_dd = -0.5
+survive_min_liq_ratio = 0.7
+[[variant]]
+name = "GUARD_caution_skip_LOOKAHEAD"   # OPTIMISTIC: uses Scout verdicts captured after the signal (creator funding is mostly pre-launch)
+guard = "replay"
+scout_creator = "skip_caution"
+scout_lookahead = true
+survive_max_dd = -0.5
+survive_min_liq_ratio = 0.7
+[[variant]]
+name = "GUARD_caution_half_LOOKAHEAD"
+guard = "replay"
+scout_creator = "half_caution"
+scout_lookahead = true
+survive_max_dd = -0.5
+survive_min_liq_ratio = 0.7
+[[variant]]
+name = "A_live_rule_caution_skip_LOOKAHEAD"
+scout_creator = "skip_caution"
+scout_lookahead = true
+[[variant]]
+name = "A_live_rule_caution_half_LOOKAHEAD"
+scout_creator = "half_caution"
+scout_lookahead = true
+[[variant]]
+name = "GUARD_ladder"            # queue: 1/2 @2x, 1/4 @3x, trail rest 30%, liq -40% exit, 6h time-stop if never +20%
+guard = "replay"
+survive_max_dd = -0.5
+survive_min_liq_ratio = 0.7
+ladder = [[2.0, 0.5], [3.0, 0.25]]
+trail_after_tp = 0.30
+liq_exit_drop = 0.40
+time_stop_h = 6
+[[variant]]
+name = "GUARD_ladder_reentry"
+guard = "replay"
+survive_max_dd = -0.5
+survive_min_liq_ratio = 0.7
+ladder = [[2.0, 0.5], [3.0, 0.25]]
+trail_after_tp = 0.30
+liq_exit_drop = 0.40
+time_stop_h = 6
+reentry = {pullback_min = 0.30, pullback_max = 0.50}
+[[variant]]
+name = "GUARD_tp2_reentry"       # Chunk's -25%/2x with one buy-back
+guard = "replay"
+survive_max_dd = -0.5
+survive_min_liq_ratio = 0.7
+reentry = {pullback_min = 0.30, pullback_max = 0.50}
+[[variant]]
+name = "GUARD_ticket1pct_stake10" # stake 10% of equity, skip if ticket > 1% of pool
+guard = "replay"
+survive_max_dd = -0.5
+survive_min_liq_ratio = 0.7
+stake_pct = 0.10
+max_ticket_pct = 0.01
+[[variant]]
+name = "GUARD_stake10_noticketcap"
+guard = "replay"
+survive_max_dd = -0.5
+survive_min_liq_ratio = 0.7
+stake_pct = 0.10
+[[variant]]
+name = "LADDER_unguarded"        # ladder vs A_live_rule on the larger pre-guard sample
+ladder = [[2.0, 0.5], [3.0, 0.25]]
+trail_after_tp = 0.30
+liq_exit_drop = 0.40
+time_stop_h = 6
+[[variant]]
+name = "REENTRY_unguarded"
+reentry = {pullback_min = 0.30, pullback_max = 0.50}
+[[variant]]
+name = "CHUNKPAPER_all"          # Chunk's would-be buys (live/paper-buys.jsonl), entry at logged DexScreener price
+source = "chunk_paper"
+min_score = 0
+[[variant]]
+name = "CHUNKPAPER_skip_caution"
+source = "chunk_paper"
+min_score = 0
+scout_creator = "skip_caution"
+[[variant]]
+name = "CHUNKPAPER_half_caution"
+source = "chunk_paper"
+min_score = 0
+scout_creator = "half_caution"
+[[variant]]
+name = "CLUSTER3_enter3rd"       # forward-only clusters (detected <= 15 min after last buy in window); entry at last_buy_in_window_at
+source = "cluster"
+min_score = 0
+[[variant]]
+name = "CLUSTER3_LOOKAHEAD_backfill"   # Scout's retro clusters (wallets mined from 20 runners -> hindsight selection). Upper bound only, never a candidate
+source = "cluster"
+min_score = 0
+
+# ---- neighbour sweeps (METHOD rule 2): every value becomes a variant in one family; lucky_number flags isolated winners
+[[sweep]]
+base = "GUARD_replay"
+param = "guard_min_age_h"
+values = [0.0, 0.25, 0.5, 0.75, 1.0, 1.5]
+[[sweep]]
+base = "GUARD_replay"
+param = "stop"
+values = [-0.15, -0.25, -0.35]
+[[sweep]]
+base = "F_chunk_survival20"
+param = "entry_delay_min"
+values = [15, 20, 30, 45]
+[[sweep]]
+base = "A_live_rule"
+param = "stop"
+values = [-0.15, -0.25, -0.35]
+[[sweep]]
+base = "A_live_rule"
+param = "min_score"
+values = [50, 55, 60, 65]
+
+[copytrade]
+assumed_lag = 0.05               # our fill 5% worse than the leader's (until Copycat's lag log exists)
+assumed_liq_usd = 20000
+stop = -0.25                     # copyfomo stop
+stop_slip = 0.05                 # extra stop slippage (TRUTH real fill -29.5% vs -25%)
+bot_lag_s = 10                   # assumed copyfomo bot delay after the leader's buy (chart-based tests)
+max_gecko_calls = 8              # per pipeline run, copytests.py (leader-coin candles, newest trades first)
+max_rugcheck_calls = 8          # pool depth for slippage (trader_trades has no liquidity)
+fixed_traders = ["ExactTallTakin", "_benjitrades"]
+
+[queue]
+cluster_min_wallets = 3

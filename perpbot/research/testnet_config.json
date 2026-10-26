@@ -1,0 +1,15 @@
+{
+  "_note": "Hyperliquid TESTNET only. Paper/research. No real money. Fill credentials via env vars, never in this file.",
+  "exchange": "hyperliquid",
+  "sandbox": true,
+  "symbols": ["BTC/USDC:USDC", "SOL/USDC:USDC"],
+  "timeframe": "4h",
+  "strategy": "vote_3_of_4",
+  "stop_atr_mult": 1.5,
+  "risk_per_trade": 0.01,
+  "max_leverage": 3,
+  "capital_split": {"BTC/USDC:USDC": 0.5, "SOL/USDC:USDC": 0.5},
+  "daily_loss_halt_pct": 3.0,
+  "env_wallet_address": "HL_TESTNET_WALLET_ADDRESS",
+  "env_agent_private_key": "HL_TESTNET_API_AGENT_KEY"
+}

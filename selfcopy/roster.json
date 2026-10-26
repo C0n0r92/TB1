@@ -1,0 +1,157 @@
+{
+ "note": "Edited by Zero, plus new wallets merged every minute from roster_inbox.json (Scout). Max 20 active; when full the idlest low-confidence wallet (not live, no open position, not manual_live) is set active:false. Set active:false to drop one.",
+ "leaders": [
+  {
+   "label": "_benjitrades",
+   "wallet": "9PB1RLFsp65qLJ1SQMmcx2ff8Zn6cPYkYqMCWUfVC3sc",
+   "source": "onchain-intel leader_mappings.json (seed)",
+   "confidence": "low",
+   "added": "2026-10-23T23:57:14Z",
+   "active": true
+  },
+  {
+   "label": "bystevenr",
+   "wallet": "AH75Bn6QHSt5K2Ad4p1otns3JTwpSJWZTwiwKWNhmnKx",
+   "source": "onchain-intel leader_mappings.json (seed)",
+   "confidence": "low",
+   "added": "2026-10-23T23:57:14Z",
+   "active": true
+  },
+  {
+   "label": "pointfarmcap",
+   "wallet": "Beqv6dzTcjV2eodo8RRXCiCcnSYrS1vkQKhfqwHXqeit",
+   "source": "onchain-intel leader_mappings.json (seed)",
+   "confidence": "medium-low",
+   "added": "2026-10-23T23:57:14Z",
+   "active": true
+  },
+  {
+   "label": "ExactTallTakin",
+   "wallet": "AGdtsMmphhymH5wYW3dWKSkAxpLYRrNDCTFAfuq8ii9v",
+   "source": "onchain-intel leader_mappings.json (seed)",
+   "confidence": "medium",
+   "added": "2026-10-23T23:57:14Z",
+   "active": true
+  },
+  {
+   "label": "neodot",
+   "wallet": "5o3kAZLwEzNF1kfVv8JSEqv6sSB88pZbHxF1oYTxgXzG",
+   "source": "scout copy-candidates.md (Pulse lead, Scout on-chain check 2026-10-24)",
+   "confidence": "medium",
+   "added": "2026-10-24T00:43:29Z",
+   "active": true
+  },
+  {
+   "label": "ypnn-day",
+   "wallet": "YpnnUu1ZPHpAzy4xggEd5pBTbu1aDayXuARsYsavNs9",
+   "source": "scout active-now.md near-miss (35 trades/5.6d, +7.1% after costs, median trade -1.7%); user-approved day-session copy 2026-10-24 08:54Z",
+   "confidence": "medium-low",
+   "added": "2026-10-24T08:56:08Z",
+   "active": true
+  },
+  {
+   "label": "ew4ue-flip",
+   "wallet": "Ew4ueQQwA4p5sDf6PqwME54Th4trkQZqJZ2bsEzWqY2y",
+   "source": "Scout quick-flip screen 2026-10-24 (near-pass: median +2.7% at 5s delay, ex-best -0.098 SOL)",
+   "confidence": "low",
+   "added": "2026-10-24T13:20:00Z",
+   "active": true
+  },
+  {
+   "label": "zeropnl",
+   "wallet": "4xY9T1Q7foJzJsJ6YZDSsfp9zkzeZsXnxd45SixduMmr",
+   "source": "kolscan daily leaderboard 24 Oct (positive day PnL), active on-chain 14:50Z; added 15:05Z per user 'Chunk follows 15 traders'",
+   "confidence": "medium",
+   "added": "2026-10-24T15:05:00Z",
+   "active": true
+  },
+  {
+   "label": "Cented",
+   "wallet": "CyaE1VxvBrahnPWkqm5VsdCvyS2QmNht2UFrKJHga54o",
+   "source": "kolscan daily leaderboard 24 Oct (positive day PnL), active on-chain 14:50Z; added 15:05Z per user 'Chunk follows 15 traders'",
+   "confidence": "medium",
+   "added": "2026-10-24T15:05:00Z",
+   "active": true
+  },
+  {
+   "label": "decu",
+   "wallet": "4vw54BmAogeRV3vPKWyFet5yf8DTLcREzdSzx4rw9Ud9",
+   "source": "kolscan daily leaderboard 24 Oct (positive day PnL), active on-chain 14:50Z; added 15:05Z per user 'Chunk follows 15 traders'",
+   "confidence": "medium",
+   "added": "2026-10-24T15:05:00Z",
+   "active": true
+  },
+  {
+   "label": "Schoen",
+   "wallet": "5hAgYC8TJCcEZV7LTXAzkTrm7YL29YXyQQJPCNrG84zM",
+   "source": "kolscan daily leaderboard 24 Oct (positive day PnL), active on-chain 14:50Z; added 15:05Z per user 'Chunk follows 15 traders'",
+   "confidence": "medium",
+   "added": "2026-10-24T15:05:00Z",
+   "active": true
+  },
+  {
+   "label": "West",
+   "wallet": "JDd3hy3gQn2V982mi1zqhNqUw1GfV2UL6g76STojCJPN",
+   "source": "kolscan daily leaderboard 24 Oct (positive day PnL), active on-chain 14:50Z; added 15:05Z per user 'Chunk follows 15 traders'",
+   "confidence": "medium",
+   "added": "2026-10-24T15:05:00Z",
+   "active": true
+  },
+  {
+   "label": "Rilsio",
+   "wallet": "4fZFcK8ms3bFMpo1ACzEUz8bH741fQW4zhAMGd5yZMHu",
+   "source": "kolscan daily leaderboard 24 Oct (positive day PnL), active on-chain 14:50Z; added 15:05Z per user 'Chunk follows 15 traders'",
+   "confidence": "medium",
+   "added": "2026-10-24T15:05:00Z",
+   "active": true
+  },
+  {
+   "label": "KOREAN",
+   "wallet": "6KR7SorsUQtNH6CB6JpAnWCAKeTysa95iyXeWihdNeGT",
+   "source": "kolscan daily leaderboard 24 Oct (positive day PnL), active on-chain 14:50Z; added 15:05Z per user 'Chunk follows 15 traders'",
+   "confidence": "medium",
+   "added": "2026-10-24T15:05:00Z",
+   "active": true
+  },
+  {
+   "label": "Doji",
+   "wallet": "5ZuV8eqkvzYFVEKbLvGBdexL2tFv7E5BCd2HZpjqbdg",
+   "source": "kolscan daily leaderboard 24 Oct (positive day PnL), active on-chain 14:50Z; added 15:05Z per user 'Chunk follows 15 traders'",
+   "confidence": "medium",
+   "added": "2026-10-24T15:05:00Z",
+   "active": true
+  },
+  {
+   "label": "bust",
+   "wallet": "FzVQSzj8JJr6WMGqbUHzx2XH1KkrfxRrRPv6WcbbZmND",
+   "source": "kolscan daily leaderboard 24 Oct (positive day PnL), active on-chain 14:50Z; added 15:05Z per user 'Chunk follows 15 traders'",
+   "confidence": "medium",
+   "added": "2026-10-24T15:05:00Z",
+   "active": true
+  },
+  {
+   "label": "Mel",
+   "wallet": "36A6mEN5rYJdVTb6fMqVvG6ez8g2mTYdr1omWcQ1kDKG",
+   "source": "kolscan daily leaderboard 24 Oct (positive day PnL), active on-chain 14:50Z; added 15:05Z per user 'Chunk follows 15 traders'",
+   "confidence": "medium",
+   "added": "2026-10-24T15:05:00Z",
+   "active": true
+  },
+  {
+   "label": "KingSolomon",
+   "wallet": "DEdEW3SMPU2dCfXEcgj2YppmX9H3bnMDJaU4ctn2BQDQ",
+   "source": "kolscan daily leaderboard 24 Oct (positive day PnL), active on-chain 14:50Z; added 15:05Z per user 'Chunk follows 15 traders'",
+   "confidence": "medium",
+   "added": "2026-10-24T15:05:00Z",
+   "active": true
+  },
+  {
+   "label": "gr3g",
+   "wallet": "J23qr98GjGJJqKq9CBEnyRhHbmkaVxtTJNNxKu597wsA",
+   "source": "kolscan daily leaderboard 24 Oct (positive day PnL), active on-chain 14:50Z; added 15:05Z per user 'Chunk follows 15 traders'",
+   "confidence": "medium",
+   "added": "2026-10-24T15:05:00Z",
+   "active": true
+  }
+ ]
+}
